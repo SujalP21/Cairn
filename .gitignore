@@ -38,3 +38,6 @@ Thumbs.db
 *.sln
 *.sw?
 *.local
+
+# Local agent/editor tooling
+.claude/
