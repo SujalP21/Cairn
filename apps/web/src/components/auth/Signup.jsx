@@ -5,9 +5,7 @@ import { useAuth } from "../../auth";
 import { useForm } from "../../hooks/useForm";
 import Button from "../ui/Button";
 import Field from "../ui/Field";
-import "./auth.css";
-
-import logo from "../../assets/cairn-mark-white.svg";
+import AuthLayout from "./AuthLayout";
 
 const Signup = () => {
   const { setCurrentUser } = useAuth();
@@ -34,13 +32,15 @@ const Signup = () => {
   });
 
   return (
-    <div className="auth-page">
-      <img className="auth-logo" src={logo} alt="Cairn" />
-
-      <div className="auth-heading">
-        <h1>Create your account</h1>
-      </div>
-
+    <AuthLayout
+      title="Create your account"
+      subtitle="Free, and takes about ten seconds."
+      footer={
+        <p className="auth-alt">
+          Already have an account? <Link to="/auth">Login</Link>
+        </p>
+      }
+    >
       <form className="auth-card" onSubmit={handleSubmit} noValidate>
         {formError && (
           <div className="alert" role="alert">
@@ -83,11 +83,7 @@ const Signup = () => {
           {isSubmitting ? "Creating account…" : "Signup"}
         </Button>
       </form>
-
-      <p className="auth-alt">
-        Already have an account? <Link to="/auth">Login</Link>
-      </p>
-    </div>
+    </AuthLayout>
   );
 };
 

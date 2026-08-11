@@ -31,9 +31,8 @@
   color: var(--text-strong);
 }
 
-.navbar-brand img {
-  width: 28px;
-  height: 28px;
+.navbar-mark {
+  color: var(--accent);
 }
 
 .navbar-links {
@@ -62,6 +61,7 @@
 .navbar-link-active {
   color: var(--text-strong);
   background-color: var(--surface-hover);
+  box-shadow: inset 0 -2px 0 var(--accent);
 }
 
 @media (max-width: 640px) {

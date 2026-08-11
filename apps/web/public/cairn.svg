@@ -1,7 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="#f0f6fc" role="img" aria-label="Cairn">
-  <ellipse cx="32" cy="53.5" rx="21" ry="6.5" transform="rotate(-2 32 53.5)"/>
-  <ellipse cx="32" cy="41.5" rx="16.5" ry="5.8" transform="rotate(3 32 41.5)"/>
-  <ellipse cx="32" cy="30.5" rx="12.5" ry="5.2" transform="rotate(-4 32 30.5)"/>
-  <ellipse cx="32" cy="20.8" rx="9" ry="4.4" transform="rotate(2 32 20.8)"/>
-  <ellipse cx="32" cy="12.6" rx="5.6" ry="3.6" transform="rotate(-3 32 12.6)"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Cairn">
+  <rect width="64" height="64" rx="14" fill="#15161b"/>
+  <g transform="translate(0, 2) scale(0.92) translate(2.8, 0)">
+    <ellipse cx="32" cy="53.5" rx="21" ry="6.5" transform="rotate(-2 32 53.5)" fill="#5c554d"/>
+    <ellipse cx="32" cy="41.5" rx="16.5" ry="5.8" transform="rotate(3 32 41.5)" fill="#6d6459"/>
+    <ellipse cx="32" cy="30.5" rx="12.5" ry="5.2" transform="rotate(-4 32 30.5)" fill="#867a6b"/>
+    <ellipse cx="32" cy="20.8" rx="9" ry="4.4" transform="rotate(2 32 20.8)" fill="#a3937f"/>
+    <ellipse cx="32" cy="12.6" rx="5.6" ry="3.6" transform="rotate(-3 32 12.6)" fill="#e3a857"/>
+  </g>
 </svg>

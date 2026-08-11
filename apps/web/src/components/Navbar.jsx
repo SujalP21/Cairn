@@ -1,8 +1,7 @@
 import { Link, NavLink } from "react-router-dom";
 import { PlusIcon, PersonIcon, HomeIcon } from "@primer/octicons-react";
+import { CairnMark } from "./ui/CairnMark";
 import "./navbar.css";
-
-import logo from "../assets/cairn-mark-white.svg";
 
 const linkClass = ({ isActive }) =>
   `navbar-link ${isActive ? "navbar-link-active" : ""}`;
@@ -11,7 +10,7 @@ const Navbar = () => (
   <header className="navbar">
     <nav className="navbar-inner" aria-label="Main">
       <Link to="/" className="navbar-brand">
-        <img src={logo} alt="" />
+        <CairnMark size={26} className="navbar-mark" />
         <span>Cairn</span>
       </Link>
 

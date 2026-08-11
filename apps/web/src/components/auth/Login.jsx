@@ -5,9 +5,7 @@ import { useAuth } from "../../auth";
 import { useForm } from "../../hooks/useForm";
 import Button from "../ui/Button";
 import Field from "../ui/Field";
-import "./auth.css";
-
-import logo from "../../assets/cairn-mark-white.svg";
+import AuthLayout from "./AuthLayout";
 
 const Login = () => {
   const { setCurrentUser } = useAuth();
@@ -38,13 +36,15 @@ const Login = () => {
   });
 
   return (
-    <div className="auth-page">
-      <img className="auth-logo" src={logo} alt="Cairn" />
-
-      <div className="auth-heading">
-        <h1>Sign in to Cairn</h1>
-      </div>
-
+    <AuthLayout
+      title="Sign in to Cairn"
+      subtitle="Welcome back."
+      footer={
+        <p className="auth-alt">
+          New to Cairn? <Link to="/signup">Create an account</Link>
+        </p>
+      }
+    >
       <form className="auth-card" onSubmit={handleSubmit} noValidate>
         {formError && (
           <div className="alert" role="alert">
@@ -76,11 +76,7 @@ const Login = () => {
           {isSubmitting ? "Signing in…" : "Login"}
         </Button>
       </form>
-
-      <p className="auth-alt">
-        New to Cairn? <Link to="/signup">Create an account</Link>
-      </p>
-    </div>
+    </AuthLayout>
   );
 };
 

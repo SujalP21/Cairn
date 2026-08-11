@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { SearchIcon, RepoIcon, PlusIcon } from "@primer/octicons-react";
+import { SearchIcon, PlusIcon } from "@primer/octicons-react";
+import Avatar from "../ui/Avatar";
 import { useAuth } from "../../auth";
 import { useQuery } from "../../hooks/useQuery";
 import { useSocketEvent } from "../../hooks/useSocket";
@@ -8,7 +9,8 @@ import { useToasts } from "../ui/toastContext";
 import Navbar from "../Navbar";
 import Button from "../ui/Button";
 import RepoCard from "../repo/RepoCard";
-import { Loading, ErrorState, EmptyState } from "../ui/Status";
+import { ErrorState, EmptyState } from "../ui/Status";
+import { RepoGridSkeleton, SidebarSkeleton } from "../ui/Skeleton";
 import "./dashboard.css";
 
 const Dashboard = () => {
@@ -68,9 +70,7 @@ const Dashboard = () => {
             <section className="sidebar-panel">
               <h2 className="sidebar-panel-header">Explore repositories</h2>
 
-              {suggested.isLoading && (
-                <div className="sidebar-item muted">Loading…</div>
-              )}
+              {suggested.isLoading && <SidebarSkeleton />}
 
               {suggested.error && (
                 <div className="sidebar-item">
@@ -92,16 +92,23 @@ const Dashboard = () => {
                       to={`/repo/${repo._id}`}
                       key={repo._id}
                     >
-                      <span className="sidebar-item-name">
-                        {repo.owner?.username
-                          ? `${repo.owner.username}/${repo.name}`
-                          : repo.name}
-                      </span>
-                      {repo.description && (
-                        <span className="sidebar-item-description">
-                          {repo.description}
+                      <Avatar
+                        userId={repo.owner?._id}
+                        name={repo.owner?.username}
+                        size={28}
+                      />
+                      <span className="sidebar-item-text">
+                        <span className="sidebar-item-name">
+                          {repo.owner?.username
+                            ? `${repo.owner.username}/${repo.name}`
+                            : repo.name}
                         </span>
-                      )}
+                        {repo.description && (
+                          <span className="sidebar-item-description">
+                            {repo.description}
+                          </span>
+                        )}
+                      </span>
                     </Link>
                   ))
                 ))}
@@ -131,7 +138,7 @@ const Dashboard = () => {
               </Link>
             </div>
 
-            {mine.isLoading && <Loading label="Loading your repositories…" />}
+            {mine.isLoading && <RepoGridSkeleton />}
 
             {mine.error && (
               <ErrorState message={mine.error} onRetry={mine.refetch} />
@@ -141,12 +148,11 @@ const Dashboard = () => {
               <>
                 {repositories.length === 0 && (
                   <EmptyState
-                    icon={<RepoIcon size={24} />}
-                    title="No repositories yet"
-                    description="Create your first repository to get started."
+                    title="Start your first pile"
+                    description="A repository is where your files and their history live. Create one and start stacking."
                     action={
                       <Link to="/new">
-                        <Button variant="primary">New repository</Button>
+                        <Button variant="accent">New repository</Button>
                       </Link>
                     }
                   />

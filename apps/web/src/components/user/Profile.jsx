@@ -7,7 +7,9 @@ import Navbar from "../Navbar";
 import Button from "../ui/Button";
 import RepoCard from "../repo/RepoCard";
 import HeatMapProfile from "./HeatMap";
-import { Loading, ErrorState, EmptyState } from "../ui/Status";
+import Avatar from "../ui/Avatar";
+import { ErrorState, EmptyState } from "../ui/Status";
+import { ProfileSkeleton, RepoGridSkeleton } from "../ui/Skeleton";
 import "./profile.css";
 import "../repo/repo.css";
 
@@ -40,7 +42,7 @@ const Profile = () => {
       <Navbar />
 
       <main className="page">
-        {profile.isLoading && <Loading label="Loading profile…" />}
+        {profile.isLoading && <ProfileSkeleton />}
 
         {profile.error && (
           <ErrorState message={profile.error} onRetry={profile.refetch} />
@@ -49,9 +51,12 @@ const Profile = () => {
         {!profile.isLoading && !profile.error && (
           <div className="profile-layout">
             <aside className="profile-sidebar">
-              <div className="profile-avatar" aria-hidden="true">
-                {username.charAt(0) || "?"}
-              </div>
+              <Avatar
+                userId={currentUser}
+                name={username}
+                size={200}
+                className="profile-avatar"
+              />
 
               <h1 className="profile-name">{username}</h1>
 
@@ -110,7 +115,7 @@ const Profile = () => {
 
               {tab === "repositories" && (
                 <>
-                  {repos.isLoading && <Loading />}
+                  {repos.isLoading && <RepoGridSkeleton count={2} />}
 
                   {repos.error && (
                     <ErrorState message={repos.error} onRetry={repos.refetch} />

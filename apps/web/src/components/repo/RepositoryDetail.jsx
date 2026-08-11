@@ -17,7 +17,10 @@ import { useForm } from "../../hooks/useForm";
 import Navbar from "../Navbar";
 import Button from "../ui/Button";
 import Field from "../ui/Field";
+import Avatar from "../ui/Avatar";
 import { Loading, ErrorState, EmptyState } from "../ui/Status";
+import { IssueListSkeleton } from "../ui/Skeleton";
+import { timeAgo } from "../../lib/format";
 import "./repo.css";
 
 const IssueRow = ({ issue, canManage, onToggle, onDelete, busyId }) => {
@@ -29,14 +32,23 @@ const IssueRow = ({ issue, canManage, onToggle, onDelete, busyId }) => {
         {isOpen ? <IssueOpenedIcon size={16} /> : <IssueClosedIcon size={16} />}
       </span>
 
-      <div className="stack" style={{ gap: 2 }}>
+      <div className="stack" style={{ gap: 4, minWidth: 0 }}>
         <span className="issue-title">{issue.title}</span>
         <span className="issue-meta">
-          {issue.description}
-          {issue.author?.username
-            ? ` · opened by ${issue.author.username}`
-            : ""}
+          {issue.author?.username && (
+            <>
+              <Avatar
+                userId={issue.author._id}
+                name={issue.author.username}
+                size={16}
+              />
+              {issue.author.username}
+              {" · "}
+            </>
+          )}
+          opened {timeAgo(issue.createdAt)}
         </span>
+        <span className="issue-description">{issue.description}</span>
       </div>
 
       {canManage && (
@@ -202,7 +214,7 @@ const RepositoryDetail = () => {
               Issues
             </h2>
 
-            {issuesQuery.isLoading && <Loading label="Loading issues…" />}
+            {issuesQuery.isLoading && <IssueListSkeleton />}
 
             {issuesQuery.error && (
               <ErrorState
@@ -215,9 +227,8 @@ const RepositoryDetail = () => {
               <>
                 {issues.length === 0 ? (
                   <EmptyState
-                    icon={<IssueOpenedIcon size={24} />}
                     title="No issues yet"
-                    description="Open the first one below."
+                    description="Nothing has been reported on this repository. Open the first one below."
                   />
                 ) : (
                   <ul

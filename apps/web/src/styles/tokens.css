@@ -1,47 +1,62 @@
 /*
  * Design tokens.
  *
- * One dark theme, deliberately. The product is a code-hosting site and the
- * previous stylesheets each invented their own palette; a single token set is
- * what keeps the new surfaces consistent as they get built out.
+ * The palette is built from the name: basalt darks, limestone text, sandstone
+ * and lichen accents. It deliberately avoids the blue-grey every developer tool
+ * defaults to — warm neutrals are what make it read as Cairn rather than as a
+ * reskin of something else.
  */
 :root {
-  /* Surfaces, from furthest back to nearest front */
-  --canvas: #0d1117;
-  --surface: #161b22;
-  --surface-raised: #1c2128;
-  --surface-hover: #21262d;
+  /* Surfaces — basalt, from furthest back to nearest front */
+  --canvas: #15161b;
+  --surface: #1c1d24;
+  --surface-raised: #23242d;
+  --surface-hover: #2b2c36;
+  --surface-sunken: #101116;
 
   /* Borders */
-  --border: #30363d;
-  --border-muted: #21262d;
-  --border-strong: #484f58;
+  --border: #34353f;
+  --border-muted: #26272f;
+  --border-strong: #4a4b57;
 
-  /* Text */
-  --text: #e6edf3;
-  --text-strong: #f0f6fc;
-  --text-muted: #8b949e;
-  --text-subtle: #6e7681;
+  /* Text — limestone, warm rather than blue-white */
+  --text: #ece8e3;
+  --text-strong: #fbf9f6;
+  --text-muted: #a29c94;
+  --text-subtle: #78736c;
 
-  /* Accents */
-  --accent: #2f81f7;
-  --accent-hover: #58a6ff;
-  --accent-subtle: rgba(47, 129, 247, 0.15);
+  /* Accents — sandstone amber and lichen sage */
+  --accent: #e3a857;
+  --accent-hover: #f2bd76;
+  --accent-subtle: rgba(227, 168, 87, 0.14);
+  --accent-border: rgba(227, 168, 87, 0.4);
 
-  --success: #238636;
-  --success-hover: #2ea043;
-  --success-text: #3fb950;
+  --sage: #7fa274;
+  --sage-hover: #93b788;
+  --sage-subtle: rgba(127, 162, 116, 0.14);
 
-  --danger: #da3633;
-  --danger-hover: #f85149;
-  --danger-subtle: rgba(248, 81, 73, 0.12);
+  --success: #5f8d5a;
+  --success-hover: #6fa268;
+  --success-text: #8fbb84;
 
-  --warning-text: #d29922;
+  --danger: #c9563f;
+  --danger-hover: #e2745b;
+  --danger-subtle: rgba(217, 97, 76, 0.14);
+
+  --info: #6f8fae;
+
+  /* The signature gradient: sandstone into lichen */
+  --gradient: linear-gradient(135deg, #e3a857 0%, #c9924f 45%, #7fa274 100%);
+  --gradient-soft: linear-gradient(
+    135deg,
+    rgba(227, 168, 87, 0.16) 0%,
+    rgba(127, 162, 116, 0.16) 100%
+  );
 
   /* Radius */
   --radius-sm: 4px;
-  --radius: 6px;
-  --radius-lg: 12px;
+  --radius: 8px;
+  --radius-lg: 14px;
   --radius-full: 999px;
 
   /* Spacing scale */
@@ -52,6 +67,7 @@
   --space-5: 24px;
   --space-6: 32px;
   --space-7: 48px;
+  --space-8: 72px;
 
   /* Type */
   --font-sans:
@@ -61,18 +77,24 @@
     ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
     monospace;
 
+  /* A wider scale than before, so headings actually establish hierarchy
+     instead of everything sitting within 3px of everything else. */
   --text-xs: 12px;
   --text-sm: 13px;
-  --text-base: 14px;
-  --text-md: 16px;
-  --text-lg: 20px;
-  --text-xl: 24px;
-  --text-2xl: 32px;
+  --text-base: 15px;
+  --text-md: 17px;
+  --text-lg: 22px;
+  --text-xl: 28px;
+  --text-2xl: 38px;
+  --text-3xl: 52px;
 
-  /* Elevation */
-  --shadow-sm: 0 1px 3px rgba(1, 4, 9, 0.4);
-  --shadow: 0 8px 24px rgba(1, 4, 9, 0.5);
+  /* Elevation — warm-tinted rather than neutral black */
+  --shadow-sm: 0 1px 2px rgba(10, 8, 6, 0.5);
+  --shadow: 0 8px 24px rgba(10, 8, 6, 0.55);
+  --shadow-lg: 0 20px 48px rgba(10, 8, 6, 0.6);
 
-  --header-height: 60px;
+  --header-height: 62px;
   --content-width: 1280px;
+
+  --ease: cubic-bezier(0.2, 0.6, 0.3, 1);
 }
