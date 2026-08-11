@@ -10,6 +10,44 @@ Sign up, create public or private repositories, browse them, and file and triage
 with a `cairn` CLI that snapshots your files and syncs them to S3. See
 [Known gaps](#known-gaps) for what is not built yet.
 
+**Docs:** [Architecture](docs/ARCHITECTURE.md) · [API reference](docs/API.md) · [Deployment](docs/DEPLOYMENT.md)
+
+## Quick start
+
+The fastest path needs Docker and nothing else — no Node, no MongoDB, no configuration:
+
+```bash
+docker compose up --build
+```
+
+Then open **http://localhost:8080**. The API is on `:3002` and MongoDB on `:27018`.
+
+### Running it directly
+
+Requires Node.js 20+ and a MongoDB instance.
+
+```bash
+npm install
+```
+
+```bash
+npm run setup
+```
+
+`setup` creates `apps/api/.env` and `apps/web/.env` from the committed templates and generates
+a real signing secret. It never overwrites an existing file, so it is safe to re-run. Edit
+`MONGODB_URI` if your database is not on `localhost`.
+
+Then, in separate terminals:
+
+```bash
+npm run dev:api
+```
+
+```bash
+npm run dev:web
+```
+
 ## Repository layout
 
 Cairn is an npm workspaces monorepo:
@@ -17,11 +55,13 @@ Cairn is an npm workspaces monorepo:
 ```
 cairn/
 ├── package.json          workspace root
+├── docker-compose.yml    database + api + web
 ├── apps/
 │   ├── api/              Express REST API + the Cairn version control CLI
 │   └── web/              React 18 + Vite client
-└── packages/
-    └── shared/           Zod schemas shared by both sides
+├── packages/
+│   └── shared/           Zod schemas shared by both sides
+└── docs/                 architecture, API reference, deployment
 ```
 
 | Workspace | Package | Stack |
@@ -34,73 +74,23 @@ cairn/
 client's forms import the same schema objects, so the two cannot drift apart about what a valid
 username or repository name is.
 
-## Getting started
-
-Requires Node.js 20+ and a MongoDB instance.
-
-```bash
-npm install
-```
-
-One install at the root covers all three workspaces and builds `@cairn/shared`, which the
-other two import.
-
-Then copy the environment templates and fill them in — every variable is documented there,
-and the API validates all of them at startup and refuses to boot with a readable error if
-anything is missing or malformed:
-
-```bash
-cp apps/api/.env.example apps/api/.env && cp apps/web/.env.example apps/web/.env
-```
-
-At minimum set `MONGODB_URI` and generate a `JWT_ACCESS_SECRET`:
-
-```bash
-node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
-```
-
-Then, in separate terminals:
-
-```bash
-npm run dev:api
-```
-
-```bash
-npm run dev:web
-```
-
-### Workspace scripts
+## Scripts
 
 | Command | What it does |
 | --- | --- |
-| `npm run build` | Builds shared → api → web, in dependency order |
-| `npm run typecheck` | Type-checks every workspace |
+| `npm run setup` | Create `.env` files with a generated secret |
+| `npm run dev:api` / `dev:web` | Development servers with reload |
+| `npm run build` | Build shared → api → web, in dependency order |
+| `npm run typecheck` | Type-check every workspace |
 | `npm run lint` | ESLint across every workspace |
 | `npm run format` | Prettier write; `format:check` to verify only |
-| `npm test` | Runs each workspace's tests |
-
-### Testing
-
-90 tests run on every push and pull request via [GitHub Actions](.github/workflows/ci.yml),
-alongside formatting, lint, typecheck and build.
-
-| Suite | Covers |
-| --- | --- |
-| `apps/api/tests/auth.test.ts` | Signup, login, refresh rotation, reuse detection, logout, CSRF guard |
-| `apps/api/tests/authorization.test.ts` | Every row of the route auth table: ownership, visibility, issue permissions |
-| `apps/api/tests/validation.test.ts` | Zod rules, key stripping, normalisation, error envelope |
-| `apps/api/tests/rateLimit.test.ts` | Signup and login throttling |
-| `apps/api/tests/vcs.test.ts` | `init` / `add` / `commit` / `revert` against a temp directory |
-| `apps/web/src/**/*.test.{js,jsx}` | API client refresh logic, auth context, login flow, error decoding |
-
-API integration tests run against a real MongoDB via `mongodb-memory-server` — no Docker and
-no local mongod required. The first run downloads a ~100 MB binary and caches it.
+| `npm test` | Run every workspace's tests |
 
 ## The web client
 
 | Route | Page |
 | --- | --- |
-| `/` | Dashboard — your repositories, search, and repositories to explore |
+| `/` | Landing page when signed out, dashboard when signed in |
 | `/new` | Create a repository, with public/private visibility |
 | `/repo/:id` | Repository detail — committed files, issue list, open an issue |
 | `/profile` | Your profile, repositories and contribution activity |
@@ -128,13 +118,14 @@ cairn pull                    # download commits from S3
 cairn revert <commitID>       # restore a commit's files into the working directory
 ```
 
-The CLI does not need a database or any server configuration — only `push` and `pull` require
-AWS credentials. During development run it with `npm run cli --workspace @cairn/api -- <command>`.
+The CLI needs no database and no server configuration — only `push` and `pull` require AWS
+credentials. During development run it with
+`npm run cli --workspace @cairn/api -- <command>`.
 
-The current implementation snapshots files by copying them. There is no content hashing, no
-parent-pointer commit graph, and no branching — see [Roadmap](#roadmap).
+It snapshots files by copying them. There is no content hashing, no parent-pointer commit
+graph, and no branching.
 
-## Security model
+## Security
 
 | Area | Approach |
 | --- | --- |
@@ -148,7 +139,30 @@ parent-pointer commit graph, and no branching — see [Roadmap](#roadmap).
 | Secrets | Validated at startup; the server exits rather than run misconfigured |
 
 Every route's auth and authorization policy is documented in a table at the top of its router
-file in `apps/api/src/routes/`.
+file in `apps/api/src/routes/`, and mirrored in the [API reference](docs/API.md).
+
+## Testing
+
+97 tests run on every push and pull request via [GitHub Actions](.github/workflows/ci.yml),
+alongside formatting, lint, typecheck and build.
+
+| Suite | Covers |
+| --- | --- |
+| `apps/api/tests/auth.test.ts` | Signup, login, refresh rotation, reuse detection, logout, CSRF guard |
+| `apps/api/tests/authorization.test.ts` | Every row of the route auth table: ownership, visibility, issue permissions |
+| `apps/api/tests/validation.test.ts` | Zod rules, key stripping, normalisation, error envelope |
+| `apps/api/tests/rateLimit.test.ts` | Signup and login throttling |
+| `apps/api/tests/vcs.test.ts` | `init` / `add` / `commit` / `revert` against a temp directory |
+| `apps/web/src/**/*.test.{js,jsx}` | API client refresh logic, auth context, login flow, form validation |
+
+API integration tests run against a real MongoDB via `mongodb-memory-server` — no Docker and
+no local mongod required. The first run downloads a ~100 MB binary and caches it.
+
+## Deploying
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for Render, Railway and Fly.io walkthroughs with
+tradeoffs. A [`render.yaml`](render.yaml) blueprint is included, so Render can create both
+services from this repository directly. MongoDB Atlas covers the database on all three.
 
 ## Known gaps
 
@@ -156,6 +170,7 @@ file in `apps/api/src/routes/`.
 - Issues can only be edited by the repository owner, not by the person who opened them.
 - The contribution heat map on the profile renders generated sample data; the API has no
   per-day contribution endpoint yet.
-- No Docker or deployment configuration.
+- The web client has no file upload — `content` is populated through the API or CLI, so the
+  Files panel stays empty unless you use them.
 - The version control layer copies files rather than hashing content: no commit graph, no
   branching, no diffs.

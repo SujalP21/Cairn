@@ -1,0 +1,27 @@
+# Never send these into the build context — they would bloat the image, break
+# layer caching, or leak secrets into an image layer.
+node_modules
+**/node_modules
+dist
+**/dist
+coverage
+**/coverage
+
+.env
+.env.*
+!.env.example
+
+.git
+.github
+.claude
+
+*.log
+.DS_Store
+Thumbs.db
+
+# Tests and tooling are not needed to produce a runtime image.
+**/*.test.ts
+**/*.test.js
+**/*.test.jsx
+apps/api/tests
+apps/web/src/test

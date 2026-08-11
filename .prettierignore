@@ -3,3 +3,9 @@ dist
 coverage
 package-lock.json
 *.md
+
+# nginx configuration. Prettier does not understand it and reflows the
+# directives into a single unparseable blob.
+*.inc
+*.conf
+nginx.conf

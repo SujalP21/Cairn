@@ -25,6 +25,7 @@
     "@types/express": "^4.17.21"
   },
   "scripts": {
+    "setup": "node scripts/setup-env.mjs",
     "dev:api": "npm run dev --workspace @cairn/api",
     "dev:web": "npm run dev --workspace @cairn/web",
     "build:shared": "npm run build --workspace @cairn/shared",

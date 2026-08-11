@@ -51,3 +51,34 @@ jobs:
       # Catches anything that type-checks but fails to emit.
       - name: Build
         run: npm run build
+
+  docker:
+    name: Container images
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Built but not pushed: this only proves the Dockerfiles still work, so a
+      # dependency or path change cannot break deployment unnoticed.
+      - name: Build API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./apps/api/Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./apps/web/Dockerfile
+          push: false
+          build-args: |
+            VITE_API_BASE_URL=http://localhost:3002
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

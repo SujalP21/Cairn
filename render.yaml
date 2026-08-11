@@ -1,0 +1,78 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+#
+# Creates both services from this repository. The database is not defined here:
+# Cairn uses MongoDB, which Render does not offer as a managed service, so
+# MONGODB_URI points at a MongoDB Atlas cluster (see docs/DEPLOYMENT.md).
+#
+# Values marked sync:false are prompted for on first deploy and never stored in
+# this file.
+
+services:
+  # ---------------------------------------------------------------------------
+  # API — Docker, because the build needs the whole monorepo for @cairn/shared
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: cairn-api
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./apps/api/Dockerfile
+    # The repository root, so the shared workspace is inside the build context.
+    dockerContext: .
+    healthCheckPath: /readyz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Render injects PORT and expects the service to bind it.
+      - key: PORT
+        value: 3002
+      - key: LOG_LEVEL
+        value: info
+      - key: ACCESS_TOKEN_TTL
+        value: 15m
+      - key: REFRESH_TOKEN_TTL_DAYS
+        value: 7
+      # Generated once by Render and kept across deploys.
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      # mongodb+srv://... from Atlas. Must include the database name.
+      - key: MONGODB_URI
+        sync: false
+      # Must exactly match the deployed web origin, including https and no
+      # trailing slash — credentials are sent, so a wildcard is not allowed.
+      - key: CORS_ORIGINS
+        sync: false
+      - key: AWS_REGION
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+
+  # ---------------------------------------------------------------------------
+  # Web — static hosting, no container needed
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: cairn-web
+    runtime: static
+    # postinstall builds @cairn/shared, which the client imports.
+    buildCommand: npm ci && npm run build:web
+    staticPublishPath: ./apps/web/dist
+    pullRequestPreviewsEnabled: true
+    envVars:
+      # Vite inlines this at build time — set it to the API service's URL.
+      - key: VITE_API_BASE_URL
+        sync: false
+    routes:
+      # Client-side routing: every unmatched path serves the app shell.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin

@@ -1,0 +1,84 @@
+# Local development stack: database, API and web client.
+#
+#   docker compose up --build
+#   → web  http://localhost:8080
+#   → api  http://localhost:3002
+#
+# No .env file is required — everything below has a working default. The
+# secrets here are development-only and must never be reused in production.
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      # 27018 on the host so this never fights a MongoDB already installed
+      # locally. Connect a GUI to mongodb://localhost:27018/cairn to inspect it.
+      - "27018:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      # The API depends on this passing, so it never starts against a database
+      # that is still initialising and then dies on first query.
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "3002:3002"
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      # `mongo` resolves over the compose network; the database name matters.
+      MONGODB_URI: mongodb://mongo:27017/cairn
+      # Development-only value. Generate a real one for any deployment:
+      #   node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev-only-secret-not-for-production-0123456789abcdef}
+      ACCESS_TOKEN_TTL: 15m
+      REFRESH_TOKEN_TTL_DAYS: 7
+      # Must match where the browser actually loads the client from.
+      CORS_ORIGINS: http://localhost:8080
+      LOG_LEVEL: info
+      AWS_REGION: ${AWS_REGION:-ap-south-1}
+      S3_BUCKET: ${S3_BUCKET:-}
+    healthcheck:
+      # /readyz reports the database connection, not just that the process is up.
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3002/readyz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        # Baked into the bundle at build time, so this is the URL the browser
+        # will call — it must be reachable from the browser, not from the
+        # compose network.
+        VITE_API_BASE_URL: http://localhost:3002
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "8080:8080"
+
+volumes:
+  mongo-data:
