@@ -1,99 +1,141 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import apiClient from "../../api/client";
-import "./profile.css";
-import Navbar from "../Navbar";
-import { UnderlineNav } from "@primer/react";
-import { BookIcon, RepoIcon } from "@primer/octicons-react";
-import HeatMapProfile from "./HeatMap";
+import { BookIcon, RepoIcon, SignOutIcon } from "@primer/octicons-react";
 import { useAuth } from "../../auth";
+import { useQuery } from "../../hooks/useQuery";
+import Navbar from "../Navbar";
+import Button from "../ui/Button";
+import RepoCard from "../repo/RepoCard";
+import HeatMapProfile from "./HeatMap";
+import { Loading, ErrorState, EmptyState } from "../ui/Status";
+import "./profile.css";
+import "../repo/repo.css";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const [userDetails, setUserDetails] = useState({ username: "username" });
   const { currentUser, logout } = useAuth();
+  const [tab, setTab] = useState("overview");
 
-  useEffect(() => {
-    if (!currentUser) return;
+  const profile = useQuery(`/userProfile/${currentUser}`, {
+    enabled: Boolean(currentUser),
+  });
 
-    const fetchUserDetails = async () => {
-      try {
-        const response = await apiClient.get(`/userProfile/${currentUser}`);
-        setUserDetails(response.data);
-      } catch (err) {
-        console.error("Cannot fetch user details: ", err);
-      }
-    };
+  const repos = useQuery(`/repo/user/${currentUser}`, {
+    enabled: Boolean(currentUser),
+    select: (data) => data.repositories ?? [],
+  });
 
-    fetchUserDetails();
-  }, [currentUser]);
+  const username = profile.data?.username ?? "";
+  const repositories = repos.data ?? [];
+
+  const joined = profile.data?.createdAt
+    ? new Date(profile.data.createdAt).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+      })
+    : null;
 
   return (
     <>
       <Navbar />
-      <UnderlineNav aria-label="Repository">
-        <UnderlineNav.Item
-          aria-current="page"
-          icon={BookIcon}
-          sx={{
-            backgroundColor: "transparent",
-            color: "white",
-            "&:hover": {
-              textDecoration: "underline",
-              color: "white",
-            },
-          }}
-        >
-          Overview
-        </UnderlineNav.Item>
 
-        <UnderlineNav.Item
-          onClick={() => navigate("/repo")}
-          icon={RepoIcon}
-          sx={{
-            backgroundColor: "transparent",
-            color: "whitesmoke",
-            "&:hover": {
-              textDecoration: "underline",
-              color: "white",
-            },
-          }}
-        >
-          Starred Repositories
-        </UnderlineNav.Item>
-      </UnderlineNav>
+      <main className="page">
+        {profile.isLoading && <Loading label="Loading profile…" />}
 
-      <button
-        onClick={async () => {
-          await logout();
-          navigate("/auth", { replace: true });
-        }}
-        style={{ position: "fixed", bottom: "50px", right: "50px" }}
-        id="logout"
-      >
-        Logout
-      </button>
+        {profile.error && (
+          <ErrorState message={profile.error} onRetry={profile.refetch} />
+        )}
 
-      <div className="profile-page-wrapper">
-        <div className="user-profile-section">
-          <div className="profile-image"></div>
+        {!profile.isLoading && !profile.error && (
+          <div className="profile-layout">
+            <aside className="profile-sidebar">
+              <div className="profile-avatar" aria-hidden="true">
+                {username.charAt(0) || "?"}
+              </div>
 
-          <div className="name">
-            <h3>{userDetails.username}</h3>
+              <h1 className="profile-name">{username}</h1>
+
+              {profile.data?.email && (
+                <p className="profile-meta">{profile.data.email}</p>
+              )}
+
+              {joined && <p className="profile-meta">Joined {joined}</p>}
+
+              <p className="profile-meta">
+                {repositories.length}{" "}
+                {repositories.length === 1 ? "repository" : "repositories"}
+              </p>
+
+              <Button
+                onClick={async () => {
+                  await logout();
+                  navigate("/auth", { replace: true });
+                }}
+              >
+                <SignOutIcon size={16} />
+                Sign out
+              </Button>
+            </aside>
+
+            <section>
+              <div className="profile-tabs" role="tablist">
+                <button
+                  className={`profile-tab ${tab === "overview" ? "profile-tab-active" : ""}`}
+                  onClick={() => setTab("overview")}
+                  role="tab"
+                  aria-selected={tab === "overview"}
+                  type="button"
+                >
+                  <BookIcon size={16} />
+                  Overview
+                </button>
+
+                <button
+                  className={`profile-tab ${tab === "repositories" ? "profile-tab-active" : ""}`}
+                  onClick={() => setTab("repositories")}
+                  role="tab"
+                  aria-selected={tab === "repositories"}
+                  type="button"
+                >
+                  <RepoIcon size={16} />
+                  Repositories
+                </button>
+              </div>
+
+              {tab === "overview" && (
+                <div className="heatmap-panel">
+                  <HeatMapProfile />
+                </div>
+              )}
+
+              {tab === "repositories" && (
+                <>
+                  {repos.isLoading && <Loading />}
+
+                  {repos.error && (
+                    <ErrorState message={repos.error} onRetry={repos.refetch} />
+                  )}
+
+                  {!repos.isLoading &&
+                    !repos.error &&
+                    (repositories.length === 0 ? (
+                      <EmptyState
+                        icon={<RepoIcon size={24} />}
+                        title="No repositories yet"
+                      />
+                    ) : (
+                      <div className="repo-grid">
+                        {repositories.map((repo) => (
+                          <RepoCard repo={repo} key={repo._id} />
+                        ))}
+                      </div>
+                    ))}
+                </>
+              )}
+            </section>
           </div>
-
-          <button className="follow-btn">Follow</button>
-
-          <div className="follower">
-            <p>10 Follower</p>
-            <p>3 Following</p>
-          </div>
-        </div>
-
-        <div className="heat-map-section">
-          <HeatMapProfile />
-        </div>
-      </div>
+        )}
+      </main>
     </>
   );
 };

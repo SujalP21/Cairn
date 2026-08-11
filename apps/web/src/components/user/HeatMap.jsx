@@ -1,67 +1,64 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import HeatMap from "@uiw/react-heat-map";
 
-// Function to generate random activity
+/**
+ * Contribution heat map.
+ *
+ * NOTE: the data is generated, not real. The API has no per-day contribution
+ * endpoint yet, so this renders plausible-looking activity for the last year.
+ * Swap `generateActivityData` for a fetch once that endpoint exists.
+ */
 const generateActivityData = (startDate, endDate) => {
   const data = [];
-  let currentDate = new Date(startDate);
+  const current = new Date(startDate);
   const end = new Date(endDate);
 
-  while (currentDate <= end) {
-    const count = Math.floor(Math.random() * 50);
+  while (current <= end) {
     data.push({
-      date: currentDate.toISOString().split("T")[0], //YYY-MM-DD
-      count: count,
+      date: current.toISOString().split("T")[0],
+      count: Math.floor(Math.random() * 12),
     });
-    currentDate.setDate(currentDate.getDate() + 1);
+    current.setDate(current.getDate() + 1);
   }
 
   return data;
 };
 
-const getPanelColors = (maxCount) => {
-  const colors = {};
-  for (let i = 0; i <= maxCount; i++) {
-    const greenValue = Math.floor((i / maxCount) * 255);
-    colors[i] = `rgb(0, ${greenValue}, 0)`;
-  }
-
-  return colors;
+const PANEL_COLORS = {
+  0: "#161b22",
+  3: "#0e4429",
+  6: "#006d32",
+  9: "#26a641",
+  12: "#39d353",
 };
 
 const HeatMapProfile = () => {
-  const [activityData, setActivityData] = useState([]);
-  const [panelColors, setPanelColors] = useState({});
+  const { data, startDate } = useMemo(() => {
+    const end = new Date();
+    const start = new Date();
+    start.setFullYear(start.getFullYear() - 1);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const startDate = "2001-01-01";
-      const endDate = "2001-01-31";
-      const data = generateActivityData(startDate, endDate);
-      setActivityData(data);
-
-      const maxCount = Math.max(...data.map((d) => d.count));
-      setPanelColors(getPanelColors(maxCount));
-    };
-
-    fetchData();
+    return { data: generateActivityData(start, end), startDate: start };
   }, []);
 
   return (
-    <div>
-      <h4>Recent Contributions</h4>
+    <div className="stack">
+      <div className="spread">
+        <h3>Contribution activity</h3>
+        <span className="badge">Sample data</span>
+      </div>
+
       <HeatMap
         className="HeatMapProfile"
-        style={{ maxWidth: "700px", height: "200px", color: "white" }}
-        value={activityData}
-        weekLabels={["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]}
-        startDate={new Date("2001-01-01")}
-        rectSize={15}
+        style={{ minWidth: 720, color: "var(--text-muted)" }}
+        value={data}
+        weekLabels={["", "Mon", "", "Wed", "", "Fri", ""]}
+        startDate={startDate}
+        rectSize={11}
         space={3}
-        rectProps={{
-          rx: 2.5,
-        }}
-        panelColors={panelColors}
+        rectProps={{ rx: 2 }}
+        panelColors={PANEL_COLORS}
+        legendCellSize={0}
       />
     </div>
   );

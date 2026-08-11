@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist/esm",
+
+    // Real ESM output so bundlers can see the named exports statically. The
+    // CommonJS build emits `__exportStar(...)`, a runtime call that Rollup
+    // cannot analyse, which makes every re-exported schema look missing.
+    "module": "esnext",
+    "moduleResolution": "bundler",
+
+    // Declarations ship with the CommonJS build; emitting them twice would
+    // just be two copies of the same .d.ts.
+    "declaration": false,
+    "declarationMap": false
+  },
+  "include": ["src/**/*"]
+}

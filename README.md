@@ -6,10 +6,9 @@ A cairn is a stack of stones that marks a trail — each stone a step, the stack
 the path. That is roughly what this project does with your code: `cairn commit` adds a stone,
 and the pile is your project's history.
 
-> **Status: under active hardening.** This started life as a course project and is being taken
-> to production quality in phases. Authentication, authorization and input validation are in
-> place; testing, deployment tooling and parts of the UI are not yet. See
-> [Roadmap](#roadmap) and [Known gaps](#known-gaps).
+Sign up, create public or private repositories, browse them, and file and triage issues —
+with a `cairn` CLI that snapshots your files and syncs them to S3. See
+[Known gaps](#known-gaps) for what is not built yet.
 
 ## Repository layout
 
@@ -28,7 +27,7 @@ cairn/
 | Workspace | Package | Stack |
 | --- | --- | --- |
 | `apps/api` | `@cairn/api` | TypeScript, Express 4, Mongoose, Pino, AWS S3, yargs |
-| `apps/web` | `@cairn/web` | React 18, Vite 5, React Router 6, Primer, axios |
+| `apps/web` | `@cairn/web` | React 18, Vite 5, React Router 6, axios, socket.io-client |
 | `packages/shared` | `@cairn/shared` | TypeScript, Zod |
 
 `packages/shared` holds the validation schemas. Both the API's request middleware and the web
@@ -97,6 +96,24 @@ alongside formatting, lint, typecheck and build.
 API integration tests run against a real MongoDB via `mongodb-memory-server` — no Docker and
 no local mongod required. The first run downloads a ~100 MB binary and caches it.
 
+## The web client
+
+| Route | Page |
+| --- | --- |
+| `/` | Dashboard — your repositories, search, and repositories to explore |
+| `/new` | Create a repository, with public/private visibility |
+| `/repo/:id` | Repository detail — committed files, issue list, open an issue |
+| `/profile` | Your profile, repositories and contribution activity |
+| `/auth`, `/signup` | Sign in and registration |
+
+Forms validate with the same Zod schemas the API enforces, so a rule is written once. Field
+errors the server alone can determine — a name already being taken — are merged back onto the
+relevant field rather than shown as a generic alert. Every request renders explicit loading,
+empty and error states, and errors offer a retry.
+
+Repository owners receive a live toast when somebody opens an issue on one of their
+repositories, over an authenticated socket connection.
+
 ## The version control CLI
 
 `apps/api` is both the API server and a standalone CLI. Repository data lives in a `.cairn/`
@@ -137,21 +154,8 @@ file in `apps/api/src/routes/`.
 
 - Rate limiting is in-memory, so it is per-process and will not hold across multiple replicas.
 - Issues can only be edited by the repository owner, not by the person who opened them.
-- The web client has no create-repository or repository-detail page yet, though the nav links to them.
+- The contribution heat map on the profile renders generated sample data; the API has no
+  per-day contribution endpoint yet.
 - No Docker or deployment configuration.
-
-## Roadmap
-
-- [x] **0 — Rename & restructure.** Cairn branding, npm workspaces monorepo.
-- [x] **1 — Bug fixes.** Signup, driver v6 API changes, schema options, issue routes, ports, config.
-- [x] **2 — Security.** JWT + ownership middleware, CORS allowlist, no password leakage, rate limiting, validation, validated config loader.
-- [x] **3 — Consistency.** TypeScript on the API and shared package, one data-access pattern, centralized error handling, Pino logging, lint and format.
-- [x] **4 — Testing.** Integration tests for auth/authorization/validation, VCS unit tests, frontend tests, GitHub Actions CI.
-- [ ] **5 — Frontend completeness.** Missing routes, loading/error states, form validation.
-- [ ] **6 — Infra.** Docker, compose, deployment docs.
-- [ ] **7 — Version control.** Decide how git-like this should genuinely become.
-
-## Acknowledgements
-
-Cairn began as a MERN course project from [Apna College](https://www.apnacollege.in/) and has
-since been substantially rewritten.
+- The version control layer copies files rather than hashing content: no commit graph, no
+  branching, no diffs.

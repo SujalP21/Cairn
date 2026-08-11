@@ -1,0 +1,319 @@
+/* Button ------------------------------------------------------------------ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 5px var(--space-4);
+  min-height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface-raised);
+  color: var(--text);
+  font-size: var(--text-base);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.btn:hover:not(:disabled) {
+  background-color: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: var(--success);
+  border-color: rgba(240, 246, 252, 0.1);
+  color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--success-hover);
+  border-color: rgba(240, 246, 252, 0.1);
+}
+
+.btn-danger {
+  background-color: transparent;
+  border-color: var(--border);
+  color: var(--danger-hover);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn-sm {
+  min-height: 28px;
+  padding: 3px var(--space-3);
+  font-size: var(--text-sm);
+}
+
+/* Field -------------------------------------------------------------------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.field-label {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.field-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.field-input,
+.field-textarea {
+  width: 100%;
+  padding: 5px var(--space-3);
+  min-height: 32px;
+  background-color: var(--canvas);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.field-textarea {
+  min-height: 96px;
+  padding: var(--space-2) var(--space-3);
+  resize: vertical;
+}
+
+.field-input:focus,
+.field-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+.field-input::placeholder,
+.field-textarea::placeholder {
+  color: var(--text-subtle);
+}
+
+.field-invalid .field-input,
+.field-invalid .field-textarea {
+  border-color: var(--danger-hover);
+}
+
+.field-invalid .field-input:focus,
+.field-invalid .field-textarea:focus {
+  box-shadow: 0 0 0 3px var(--danger-subtle);
+}
+
+.field-error {
+  font-size: var(--text-xs);
+  color: var(--danger-hover);
+}
+
+/* Checkbox / radio option -------------------------------------------------- */
+.option {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.option:hover {
+  background-color: var(--surface);
+}
+
+.option-selected {
+  border-color: var(--accent);
+  background-color: var(--accent-subtle);
+}
+
+.option input {
+  margin-top: 3px;
+  accent-color: var(--accent);
+}
+
+.option-title {
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.option-description {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* Card --------------------------------------------------------------------- */
+.card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+/* Status blocks ------------------------------------------------------------ */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.spinner-lg {
+  width: 28px;
+  height: 28px;
+  border-width: 3px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.status-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-7) var(--space-4);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.status-block h3 {
+  color: var(--text-strong);
+}
+
+.status-block-icon {
+  color: var(--text-subtle);
+}
+
+.status-error {
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-lg);
+  background-color: var(--danger-subtle);
+  padding: var(--space-4);
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  color: var(--text);
+  text-align: left;
+}
+
+.status-error-icon {
+  color: var(--danger-hover);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Inline alert used for form-level failures */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  border: 1px solid var(--danger);
+  background-color: var(--danger-subtle);
+  font-size: var(--text-sm);
+  color: var(--text);
+}
+
+/* Badge -------------------------------------------------------------------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 1px var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.badge-open {
+  background-color: var(--success);
+  border-color: transparent;
+  color: #fff;
+}
+
+.badge-closed {
+  background-color: #8957e5;
+  border-color: transparent;
+  color: #fff;
+}
+
+/* Toast -------------------------------------------------------------------- */
+.toast-region {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  z-index: 50;
+  max-width: 360px;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  animation: toast-in 0.2s ease;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.toast-title {
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.toast-body {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  margin-left: auto;
+}

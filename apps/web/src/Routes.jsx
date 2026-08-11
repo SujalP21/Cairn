@@ -1,14 +1,18 @@
 import { useEffect } from "react";
 import { useNavigate, useLocation, useRoutes } from "react-router-dom";
 
-// Pages List
+// Pages
 import Dashboard from "./components/dashboard/Dashboard";
 import Profile from "./components/user/Profile";
 import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
+import CreateRepository from "./components/repo/CreateRepository";
+import RepositoryDetail from "./components/repo/RepositoryDetail";
+import NotFound from "./components/NotFound";
 
-// Auth Context
 import { useAuth } from "./auth";
+import { Loading } from "./components/ui/Status";
+import { disconnectSocket } from "./hooks/useSocket";
 
 const PUBLIC_PATHS = ["/auth", "/signup"];
 
@@ -25,6 +29,9 @@ const ProjectRoutes = () => {
     const isPublic = PUBLIC_PATHS.includes(location.pathname);
 
     if (!currentUser && !isPublic) {
+      // Tear the socket down on sign-out so it does not reconnect with a token
+      // that no longer belongs to anyone.
+      disconnectSocket();
       navigate("/auth", { replace: true });
     }
 
@@ -34,26 +41,17 @@ const ProjectRoutes = () => {
   }, [currentUser, isBootstrapping, location.pathname, navigate]);
 
   const element = useRoutes([
-    {
-      path: "/",
-      element: <Dashboard />,
-    },
-    {
-      path: "/auth",
-      element: <Login />,
-    },
-    {
-      path: "/signup",
-      element: <Signup />,
-    },
-    {
-      path: "/profile",
-      element: <Profile />,
-    },
+    { path: "/", element: <Dashboard /> },
+    { path: "/auth", element: <Login /> },
+    { path: "/signup", element: <Signup /> },
+    { path: "/profile", element: <Profile /> },
+    { path: "/new", element: <CreateRepository /> },
+    { path: "/repo/:id", element: <RepositoryDetail /> },
+    { path: "*", element: <NotFound /> },
   ]);
 
   if (isBootstrapping) {
-    return <p className="route-loading">Loading…</p>;
+    return <Loading label="Loading Cairn…" />;
   }
 
   return element;
