@@ -133,21 +133,62 @@ it — no database, no config beyond AWS credentials.
 
 ```
 .cairn/
-├── config.json              bucket name
-├── staging/                 files added but not committed
-└── commits/
-    └── <uuid>/
-        ├── commit.json      { message, date }
-        └── <files>          full copies
+├── HEAD                 → "ref: refs/heads/main", or a raw commit id when detached
+├── index                staged paths → blob ids, as JSON
+├── config.json          bucket name
+├── refs/heads/<name>    → a commit id
+└── objects/<ab>/<cdef…> immutable, named by SHA-256 of their own contents
 ```
 
-`add` copies into `staging/`, `commit` copies staging into a new UUID
-directory, `push`/`pull` sync those directories to S3 under `commits/`.
+Three object types, exactly as in git:
 
-**This is snapshot-by-copy, not content-addressable storage.** There is no
-hashing, no parent pointers, no branches, no diffs. Every commit stores complete
-copies of every staged file. It works and it is honest about what it is; making
-it genuinely git-like is a separate piece of work.
+| Type | Contains |
+| --- | --- |
+| **blob** | A file's bytes |
+| **tree** | A directory: sorted `<type> <hash> <name>` lines pointing at blobs and subtrees |
+| **commit** | A tree id, zero or more parent ids, author, timestamp, message |
+
+Each object is hashed over `<type> <length>\0<content>`. The type is inside the
+digest deliberately — without it a blob and a tree with identical bytes would
+collide.
+
+### Why content addressing matters here
+
+An object's name is a function of its content, so identical content cannot be
+stored twice. Committing a file that has not changed writes nothing; a commit
+records only what actually differs. Measured over ten commits of a 659 KB
+unchanging file, the object store holds **694 KB** where a copy-per-commit
+design would hold roughly **6.6 MB**.
+
+Tree entries are sorted before serialisation for the same reason: unsorted
+entries would give the same directory two different hashes depending on
+insertion order, and the deduplication would silently stop working.
+
+### Refs are one line long
+
+A branch is a file containing a commit id. HEAD is a file containing either
+`ref: refs/heads/<name>` or a raw commit id. Committing moves whatever HEAD
+names. That is the whole mechanism, and it is why creating a branch is instant
+no matter how large the repository is.
+
+### The three-way comparison
+
+`status` and `diff` both rest on the same relationship:
+
+```
+HEAD commit  ──▶  index (staged)  ──▶  working tree
+             staged            not staged
+```
+
+`diff` compares content with a longest-common-subsequence line diff, grouped
+into unified hunks with surrounding context.
+
+### What is deliberately missing
+
+`merge` fast-forwards only. When histories have diverged it refuses and says so.
+A three-way content merge is a substantial algorithm whose subtle failures
+corrupt files silently — worse than declining to try. There is also no `clone`,
+no packfiles, and no rebase.
 
 ## Frontend
 

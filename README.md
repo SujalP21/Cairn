@@ -110,20 +110,54 @@ repositories, over an authenticated socket connection.
 directory, analogous to `.git/`.
 
 ```bash
-cairn init                    # create .cairn/ in the current directory
-cairn add <file>              # copy a file into the staging area
-cairn commit "<message>"      # snapshot staged files under a new commit id
-cairn push                    # upload commits to S3
-cairn pull                    # download commits from S3
-cairn revert <commitID>       # restore a commit's files into the working directory
+cairn init                    # create a repository in the current directory
+cairn add <path>              # stage a file or directory
+cairn commit "<message>"      # record the staged files as a commit
+cairn status                  # staged, unstaged and untracked changes
+cairn log                     # history, newest first
+cairn diff [--staged]         # what changed
+cairn branch [name] [-d]      # list, create or delete branches
+cairn checkout <target>       # switch to a branch or commit
+cairn merge <branch>          # fast-forward the current branch
+cairn revert <commitID>       # restore a commit's files, leaving HEAD alone
+cairn push / cairn pull       # sync objects and refs with S3
 ```
 
 The CLI needs no database and no server configuration — only `push` and `pull` require AWS
 credentials. During development run it with
 `npm run cli --workspace @cairn/api -- <command>`.
 
-It snapshots files by copying them. There is no content hashing, no parent-pointer commit
-graph, and no branching.
+### How it stores things
+
+Content-addressable, the same model git uses. Every file, directory and commit is an
+immutable object named by the SHA-256 of its contents:
+
+```
+.cairn/
+├── HEAD                    → ref: refs/heads/main
+├── index                   staged paths → blob ids
+├── refs/heads/main         → a commit id. That is all a branch is
+└── objects/
+    └── ab/cdef…            blobs (file content)
+                            trees (directories)
+                            commits (tree + parent + message)
+```
+
+Because an object's name *is* its content hash, identical content is stored exactly once.
+Committing an unchanged file costs nothing, and a commit records only what actually changed.
+Ten commits of a 659 KB file that never changes, alongside one small file edited each time:
+
+| | Storage |
+| --- | --- |
+| A full copy per commit | ~6596 KB |
+| Cairn's object store | **694 KB** |
+
+Commits carry parent pointers, so history is a real graph rather than a directory listing —
+that is what makes `log` and branching possible.
+
+**Merging is fast-forward only.** When histories have genuinely diverged, `merge` refuses and
+says so. A three-way content merge is a substantial algorithm, and getting it subtly wrong
+corrupts files, which is worse than declining.
 
 ## Security
 
@@ -170,7 +204,8 @@ services from this repository directly. MongoDB Atlas covers the database on all
 - Issues can only be edited by the repository owner, not by the person who opened them.
 - The contribution heat map on the profile renders generated sample data; the API has no
   per-day contribution endpoint yet.
-- The web client has no file upload — `content` is populated through the API or CLI, so the
-  Files panel stays empty unless you use them.
-- The version control layer copies files rather than hashing content: no commit graph, no
-  branching, no diffs.
+- The web client has no file upload, and does not yet display commit history — the version
+  control layer is CLI-only for now.
+- `merge` handles fast-forwards only; divergent histories need a three-way merge that is not
+  implemented.
+- There is no `clone`: `pull` fetches objects into an existing repository.
