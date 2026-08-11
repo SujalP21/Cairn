@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    // node16 emits CommonJS for packages without "type": "module" and is the
+    // only Node-oriented resolution TypeScript 6 still supports.
+    "module": "node16",
+    "moduleResolution": "node16",
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+
+    // @types/cookie-parser pulls in @types/express v5 while the runtime is
+    // Express 4. Skipping declaration-file checking keeps the two from
+    // colliding; our own code still type-checks against the v4 types.
+    "skipLibCheck": true
+  }
+}

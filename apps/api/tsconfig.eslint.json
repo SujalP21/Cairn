@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Must widen rootDir: tests/ sits outside src/, and leaving it inherited
+    // makes the program invalid so every type resolves as `error`.
+    "rootDir": ".",
+    "noEmit": true
+  },
+  // vitest.config.ts is excluded: it imports the ESM-only "vitest/config" from
+  // a CommonJS package, which this project's module settings cannot express.
+  "include": ["src/**/*", "tests/**/*"]
+}
